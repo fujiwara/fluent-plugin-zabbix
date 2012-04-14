@@ -28,7 +28,7 @@ class Fluent::ZabbixOutput < Fluent::Output
       raise Fluent::ConfigError, "cannot specify both of name_keys and name_key_pattern"
     end
     if @name_keys
-      @name_keys = @name_keys.split(',')
+      @name_keys = @name_keys.split(/ *, */)
     end
     if @name_key_pattern
       @name_key_pattern = Regexp.new(@name_key_pattern)
