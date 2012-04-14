@@ -43,15 +43,16 @@ class Fluent::ZabbixOutput < Fluent::Output
     super
   end
 
-  def send(tag, name, value)
+  def send(tag, name, value, time)
     if @add_key_prefix
       name = "#{@add_key_prefix}.#{name}"
     end
     begin
       zbx = Zabbix::Sender.new(:host => @zabbix_server, :port => @port)
-      $log.debug("zabbix: #{zbx}, #{name}: #{value}, host: #{@host}")
+      $log.debug("zabbix: #{zbx}, #{name}: #{value}, host: #{@host}, ts: #{time}")
 
-      status = zbx.send_data(name, value, { :host => @host })
+      opts = { :host => @host, :ts => time }
+      status = zbx.send_data(name, value.to_s, opts)
 
     rescue IOError, EOFError, SystemCallError
       # server didn't respond
@@ -68,7 +69,7 @@ class Fluent::ZabbixOutput < Fluent::Output
       es.each {|time,record|
         @name_keys.each {|name|
           if record[name]
-            send(tag, name, record[name])
+            send(tag, name, record[name], time)
           end
         }
       }
@@ -76,7 +77,7 @@ class Fluent::ZabbixOutput < Fluent::Output
       es.each {|time,record|
         record.keys.each {|key|
           if @name_key_pattern.match(key) and record[key]
-            send(tag, key, record[key])
+            send(tag, key, record[key], time)
           end
         }
       }
