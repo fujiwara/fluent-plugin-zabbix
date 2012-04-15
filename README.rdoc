@@ -26,7 +26,7 @@ For messages such as:
       zabbix_server 192.168.0.1
       port          10051
       host          client-hostname
-      name_keys     field1,field2
+      name_keys     metrics.field1,metrics.field2
     </match>
 
 or, use "add_keys_prefix"
