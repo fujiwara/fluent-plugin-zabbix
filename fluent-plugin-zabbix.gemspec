@@ -5,7 +5,7 @@ Gem::Specification.new do |gem|
   gem.authors       = ["FUJIWARA Shunichiro"]
   gem.email         = ["fujiwara.shunichiro@gmail.com"]
   gem.description   = %q{Output data plugin to Zabbix}
-  gem.summary       = %q{Output data plugin to Zabbix}
+  gem.summary       = %q{Output data plugin to Zabbix (like zabbix_sender)}
   gem.homepage      = "https://github.com/fujiwara/fluent-plugin-zabbix"
 
   gem.files         = `git ls-files`.split($\)
