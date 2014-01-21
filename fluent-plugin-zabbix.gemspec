@@ -13,7 +13,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "fluent-plugin-zabbix"
   gem.require_paths = ["lib"]
-  gem.version       = "0.0.1"
+  gem.version       = "0.0.2"
 
   gem.add_development_dependency "fluentd"
   gem.add_runtime_dependency "fluentd"
