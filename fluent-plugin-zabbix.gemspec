@@ -15,7 +15,6 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = "0.0.2"
 
-  gem.add_development_dependency "fluentd"
-  gem.add_runtime_dependency "fluentd"
-  gem.add_runtime_dependency "zabbix"
+  gem.add_runtime_dependency "fluentd", "~> 0.10"
+  gem.add_runtime_dependency "zabbix", ">= 0.4"
 end
