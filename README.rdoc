@@ -41,6 +41,17 @@ or, use "add_keys_prefix"
       name_key_pattern  ^field
     </match>
 
+If you want to specify the host(on zabbix) from record's value, use "host_key" directive.
+
+    tag:metrics {"zabbix_host":"myhostname", "metrics.field1":300, "metrics.field2":20}
+
+    <match metrics>
+      type zabbix
+      zabbix_server 192.168.0.1
+      host_key      zabbix_host
+      name_keys     metrics.field1,metrics.field2
+    </match>
+
 == TODO
 
 - patches welcome!

@@ -10,6 +10,7 @@ class Fluent::ZabbixOutput < Fluent::Output
   config_param :zabbix_server, :string
   config_param :port, :integer,            :default => 10051
   config_param :host, :string,             :default => Socket.gethostname
+  config_param :host_key, :string,         :default => nil
   config_param :name_keys, :string,        :default => nil
   config_param :name_key_pattern, :string, :default => nil
   config_param :add_key_prefix, :string,   :default => nil
@@ -43,45 +44,60 @@ class Fluent::ZabbixOutput < Fluent::Output
     super
   end
 
-  def send(tag, name, value, time)
+  def send(host, tag, name, value, time)
     if @add_key_prefix
       name = "#{@add_key_prefix}.#{name}"
     end
     begin
       zbx = Zabbix::Sender.new(:host => @zabbix_server, :port => @port)
-      $log.debug("zabbix: #{zbx}, #{name}: #{value}, host: #{@host}, ts: #{time}")
-
-      opts = { :host => @host, :ts => time }
+      $log.debug("zabbix: #{zbx}, #{name}: #{value}, host: #{host}, ts: #{time}")
+      opts = { :host => host, :ts => time }
       status = zbx.send_data(name, value.to_s, opts)
 
     rescue IOError, EOFError, SystemCallError
       # server didn't respond
-      $log.warn "Zabbix::Sender.send_data raises exception: #{$!.class}, '#{$!.message}'"
+      $log.warn "plugin-zabbix: Zabbix::Sender.send_data raises exception: #{$!.class}, '#{$!.message}'"
       status = false
     end
     unless status
-      $log.warn "failed to send to zabbix_server: #{@zabbix_server}:#{@port}, host:#{@host} '#{name}': #{value}"
+      $log.warn "plugin-zabbix: failed to send to zabbix_server: #{@zabbix_server}:#{@port}, host:#{host} '#{name}': #{value}"
     end
   end
 
   def emit(tag, es, chain)
     if @name_keys
       es.each {|time,record|
+        host = gen_host(record)
         @name_keys.each {|name|
           if record[name]
-            send(tag, name, record[name], time)
+            send(host, tag, name, record[name], time)
           end
         }
       }
     else # for name_key_pattern
       es.each {|time,record|
+        host = gen_host(record)
         record.keys.each {|key|
           if @name_key_pattern.match(key) and record[key]
-            send(tag, key, record[key], time)
+            send(host, tag, key, record[key], time)
           end
         }
       }
     end
     chain.next
+  end
+
+  def gen_host(record)
+    if @host_key
+      if record[@host_key]
+        host = record[@host_key]
+      else
+        $log.warn "plugin-zabbix: host_key is configured '#{@host_key}', but this record has no such key. use host '#{@host}'"
+        host = @host
+      end
+    else
+      host = @host
+    end
+    return host
   end
 end
