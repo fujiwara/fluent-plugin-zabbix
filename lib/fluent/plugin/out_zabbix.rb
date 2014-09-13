@@ -15,6 +15,11 @@ class Fluent::ZabbixOutput < Fluent::Output
   config_param :name_key_pattern, :string, :default => nil
   config_param :add_key_prefix, :string,   :default => nil
 
+# Define `log` method for v0.10.42 or earlier
+  unless method_defined?(:log)
+    define_method("log") { $log }
+  end
+
   def configure(conf)
     super
 
@@ -50,17 +55,17 @@ class Fluent::ZabbixOutput < Fluent::Output
     end
     begin
       zbx = Zabbix::Sender.new(:host => @zabbix_server, :port => @port)
-      $log.debug("zabbix: #{zbx}, #{name}: #{value}, host: #{host}, ts: #{time}")
+      log.debug("zabbix: #{zbx}, #{name}: #{value}, host: #{host}, ts: #{time}")
       opts = { :host => host, :ts => time }
       status = zbx.send_data(name, value.to_s, opts)
 
     rescue IOError, EOFError, SystemCallError
       # server didn't respond
-      $log.warn "plugin-zabbix: Zabbix::Sender.send_data raises exception: #{$!.class}, '#{$!.message}'"
+      log.warn "plugin-zabbix: Zabbix::Sender.send_data raises exception: #{$!.class}, '#{$!.message}'"
       status = false
     end
     unless status
-      $log.warn "plugin-zabbix: failed to send to zabbix_server: #{@zabbix_server}:#{@port}, host:#{host} '#{name}': #{value}"
+      log.warn "plugin-zabbix: failed to send to zabbix_server: #{@zabbix_server}:#{@port}, host:#{host} '#{name}': #{value}"
     end
   end
 
@@ -92,7 +97,7 @@ class Fluent::ZabbixOutput < Fluent::Output
       if record[@host_key]
         host = record[@host_key]
       else
-        $log.warn "plugin-zabbix: host_key is configured '#{@host_key}', but this record has no such key. use host '#{@host}'"
+        log.warn "plugin-zabbix: host_key is configured '#{@host_key}', but this record has no such key. use host '#{@host}'"
         host = @host
       end
     else
