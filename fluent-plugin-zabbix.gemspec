@@ -17,4 +17,5 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency "fluentd", "~> 0.10"
   gem.add_runtime_dependency "zabbix", ">= 0.4"
+  gem.add_development_dependency "rake", ">= 0.9.2"
 end
