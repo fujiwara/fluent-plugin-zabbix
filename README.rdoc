@@ -29,7 +29,7 @@ For messages such as:
       name_keys     metrics.field1,metrics.field2
     </match>
 
-or, use "add_keys_prefix"
+or, use "add_key_prefix"
     tag:metrics {"field1":300, "field2":20}
 
     <match metrics>
