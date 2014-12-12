@@ -57,8 +57,14 @@ class Fluent::ZabbixOutput < Fluent::Output
       zbx = Zabbix::Sender.new(:host => @zabbix_server, :port => @port)
       log.debug("zabbix: #{zbx}, #{name}: #{value}, host: #{host}, ts: #{time}")
       opts = { :host => host, :ts => time }
-      status = zbx.send_data(name, value.to_s, opts)
-
+      if value.kind_of? Float
+        # https://www.zabbix.com/documentation/2.4/manual/config/items/item
+        # > Allowed range (for MySQL): -999999999999.9999 to 999999999999.9999 (double(16,4)).
+        # > Starting with Zabbix 2.2, receiving values in scientific notation is also supported. E.g. 1e+70, 1e-70.
+        status = zbx.send_data(name, value.round(4).to_s, opts)
+      else
+        status = zbx.send_data(name, value.to_s, opts)
+      end
     rescue IOError, EOFError, SystemCallError
       # server didn't respond
       log.warn "plugin-zabbix: Zabbix::Sender.send_data raises exception: #{$!.class}, '#{$!.message}'"

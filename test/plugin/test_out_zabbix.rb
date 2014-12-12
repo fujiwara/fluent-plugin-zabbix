@@ -9,7 +9,7 @@ class ZabbixOutputTest < Test::Unit::TestCase
     zabbix_server  127.0.0.1
     host           test_host
     add_key_prefix test
-    name_keys      foo, bar, baz
+    name_keys      foo, bar, baz, f1, f2
   ]
 
   def create_driver(conf = CONFIG, tag='test')
@@ -23,10 +23,11 @@ class ZabbixOutputTest < Test::Unit::TestCase
       d.emit({"bar" => "test value of bar"})
       d.emit({"baz" => rand * 10 })
       d.emit({"foo" => "yyy", "zabbix_host" => "alternative-hostname"})
+      d.emit({"f1" => 0.000001})
+      d.emit({"f2" => 0.01})
       d.run
     end
   end
-
 
   CONFIG_HOST_KEY = %[
     zabbix_server  127.0.0.1
