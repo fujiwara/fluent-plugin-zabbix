@@ -1,8 +1,21 @@
 require 'helper'
 
+if ENV['LIVE_TEST']
+  require "glint"
+  require "tmpdir"
+  system "go", "build", "test/mockserver.go"
+end
+
 class ZabbixOutputTest < Test::Unit::TestCase
   def setup
     Fluent::Test.setup
+    if ENV['LIVE_TEST']
+      $dir = Dir.mktmpdir
+      $server = Glint::Server.new(10051, { :timeout => 3 }) do |port|
+        exec "./mockserver", $dir.to_s + "/trapper.log"
+      end
+      $server.start
+    end
   end
 
   CONFIG = %[
@@ -21,11 +34,21 @@ class ZabbixOutputTest < Test::Unit::TestCase
     if ENV['LIVE_TEST']
       d.emit({"foo" => "test value of foo"})
       d.emit({"bar" => "test value of bar"})
-      d.emit({"baz" => rand * 10 })
+      d.emit({"baz" => 123.4567 })
       d.emit({"foo" => "yyy", "zabbix_host" => "alternative-hostname"})
       d.emit({"f1" => 0.000001})
       d.emit({"f2" => 0.01})
       d.run
+      sleep 1
+      $server.stop
+      assert_equal open($dir + "/trapper.log").read, <<END
+host:test_host	key:test.foo	value:test value of foo
+host:test_host	key:test.bar	value:test value of bar
+host:test_host	key:test.baz	value:123.4567
+host:test_host	key:test.foo	value:yyy
+host:test_host	key:test.f1	value:0.0
+host:test_host	key:test.f2	value:0.01
+END
     end
   end
 
@@ -47,6 +70,12 @@ class ZabbixOutputTest < Test::Unit::TestCase
       d.emit({"foo" => "AAA" })
       d.emit({"foo" => "BBB", "host" => "alternative-hostname"})
       d.run
+      sleep 1
+      $server.stop
+      assert_equal open($dir + "/trapper.log").read, <<END
+host:test_host	key:test.foo	value:AAA
+host:alternative-hostname	key:test.foo	value:BBB
+END
     end
   end
 
