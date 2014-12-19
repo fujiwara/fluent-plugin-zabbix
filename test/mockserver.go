@@ -22,7 +22,7 @@ func main() {
 	} else {
 		Output = os.Stdout
 	}
-	err = zabbix.RunTrapperServer("127.0.0.1:10051", handler)
+	err = zabbix.RunTrapper("127.0.0.1:10051", handler)
 	if err != nil {
 		panic(err)
 	}
