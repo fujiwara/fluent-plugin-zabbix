@@ -65,9 +65,8 @@ class Fluent::ZabbixOutput < Fluent::Output
       else
         status = zbx.send_data(name, value.to_s, opts)
       end
-    rescue IOError, EOFError, SystemCallError
-      # server didn't respond
-      log.warn "plugin-zabbix: Zabbix::Sender.send_data raises exception: #{$!.class}, '#{$!.message}'"
+    rescue => e
+      log.warn "plugin-zabbix: Zabbix::Sender.send_data raises exception: #{e}"
       status = false
     end
     unless status
