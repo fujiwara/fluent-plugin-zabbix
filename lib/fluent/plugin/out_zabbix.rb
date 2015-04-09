@@ -1,10 +1,12 @@
 class Fluent::ZabbixOutput < Fluent::Output
   Fluent::Plugin.register_output('zabbix', self)
 
+  ZBXD = "ZBXD\x01"
+
   def initialize
     super
-    require 'zabbix'
     require 'socket'
+    require 'yajl'
   end
 
   config_param :zabbix_server, :string
@@ -54,21 +56,23 @@ class Fluent::ZabbixOutput < Fluent::Output
       name = "#{@add_key_prefix}.#{name}"
     end
     begin
-      zbx = Zabbix::Sender.new(:host => @zabbix_server, :port => @port)
-      log.debug("zabbix: #{zbx}, #{name}: #{value}, host: #{host}, ts: #{time}")
-      opts = { :host => host, :ts => time }
+      sock = TCPSocket.open(@zabbix_server, @port)
+      log.debug("zabbix: #{sock} #{name}: #{value}, host: #{host}, ts: #{time}")
       if value.kind_of? Float
         # https://www.zabbix.com/documentation/2.4/manual/config/items/item
         # > Allowed range (for MySQL): -999999999999.9999 to 999999999999.9999 (double(16,4)).
         # > Starting with Zabbix 2.2, receiving values in scientific notation is also supported. E.g. 1e+70, 1e-70.
-        status = zbx.send_data(name, value.round(4).to_s, opts)
+        status = send_to_zabbix(sock, host, name, value.round(4).to_s, time)
       else
-        status = zbx.send_data(name, value.to_s, opts)
+        status = send_to_zabbix(sock, host, name, value.to_s, time)
       end
     rescue => e
-      log.warn "plugin-zabbix: Zabbix::Sender.send_data raises exception: #{e}"
+      log.warn "plugin-zabbix: raises exception: #{e}"
       status = false
+    ensure
+      sock.close if sock
     end
+
     unless status
       log.warn "plugin-zabbix: failed to send to zabbix_server: #{@zabbix_server}:#{@port}, host:#{host} '#{name}': #{value}"
     end
@@ -110,4 +114,29 @@ class Fluent::ZabbixOutput < Fluent::Output
     end
     return host
   end
+
+  def send_to_zabbix(sock, host, key, value, time)
+    data = {
+      :host => host,
+      :key => key,
+      :value => value.to_s,
+      :time => time.to_i,
+    }
+    req = Yajl::Encoder.encode({
+      :request => 'agent data',
+      :clock => time.to_i,
+      :data => [ data ],
+    })
+    sock.write(ZBXD + [ req.size ].pack('q') + req)
+    sock.flush
+
+    header = sock.read(5)
+    if header != ZBXD
+      return false
+    end
+    len = sock.read(8).unpack('q')[0]
+    res = Yajl::Parser.parse(sock.read(len))
+    return res['response'] == "success"
+  end
+
 end
