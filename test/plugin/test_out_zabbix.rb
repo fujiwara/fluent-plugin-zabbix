@@ -21,7 +21,7 @@ class ZabbixOutputTest < Test::Unit::TestCase
   CONFIG = %[
     zabbix_server  127.0.0.1
     host           test_host
-    add_key_prefix test
+    add_key_prefix ${tag}
     name_keys      foo, bar, baz, f1, f2
   ]
 
