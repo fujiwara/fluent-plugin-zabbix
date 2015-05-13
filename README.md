@@ -1,14 +1,14 @@
-= fluent-plugin-zabbix
+# fluent-plugin-zabbix
 
-== Component
+## Component
 
-=== ZabbixOutput
+### ZabbixOutput
 
 Plugin to output values to Zabbix server.
 
-== Configuration
+## Configuration
 
-=== ZabbixOutput
+### ZabbixOutput
 
 Zabbix configuration of Item:
 
@@ -20,7 +20,7 @@ Zabbix configuration of Item:
 
 For messages such as:
     tag:metrics {"metrics.field1":300, "metrics.field2":20}
-    
+
     <match metrics>
       type zabbix
       zabbix_server 192.168.0.1
@@ -29,7 +29,7 @@ For messages such as:
       name_keys     metrics.field1,metrics.field2
     </match>
 
-or, use "add_key_prefix"
+or, use `add_key_prefix`
     tag:metrics {"field1":300, "field2":20}
 
     <match metrics>
@@ -52,12 +52,23 @@ If you want to specify the host(on zabbix) from record's value, use "host_key" d
       name_keys     metrics.field1,metrics.field2
     </match>
 
+v0.0.7~ includes [Fluent::Mixin::ConfigPlaceholders](https://github.com/tagomoris/fluent-mixin-config-placeholders). Placeholders will be expanded in a configuration.
 
-== TODO
+```
+<match matrics.**>
+  type             zabbix
+  zabbix_server    192.168.0.1
+  host             ${hostname}
+  add_key_prefix   ${tag}
+  name_key_pattern .
+</match>
+```
+
+# TODO
 
 - patches welcome!
 
-== Copyright
+## Copyright
 
-Copyright:: Copyright (c) 2012- FUJIWARA Shunichiro
-License::   Apache License, Version 2.0
+- Copyright: Copyright (c) 2012- FUJIWARA Shunichiro
+- License:   Apache License, Version 2.0

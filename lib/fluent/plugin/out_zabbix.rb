@@ -1,3 +1,5 @@
+require 'fluent/mixin/config_placeholders'
+
 class Fluent::ZabbixOutput < Fluent::Output
   Fluent::Plugin.register_output('zabbix', self)
 
@@ -17,7 +19,9 @@ class Fluent::ZabbixOutput < Fluent::Output
   config_param :name_key_pattern, :string, :default => nil
   config_param :add_key_prefix, :string,   :default => nil
 
-# Define `log` method for v0.10.42 or earlier
+  include Fluent::Mixin::ConfigPlaceholders
+
+  # Define `log` method for v0.10.42 or earlier
   unless method_defined?(:log)
     define_method("log") { $log }
   end
@@ -53,7 +57,11 @@ class Fluent::ZabbixOutput < Fluent::Output
 
   def send(host, tag, name, value, time)
     if @add_key_prefix
-      name = "#{@add_key_prefix}.#{name}"
+      if @add_key_prefix == '${tag}'
+        name = "#{tag}.#{name}"
+      else
+        name = "#{@add_key_prefix}.#{name}"
+      end
     end
     begin
       sock = TCPSocket.open(@zabbix_server, @port)
