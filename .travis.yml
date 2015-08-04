@@ -7,3 +7,7 @@ rvm:
 gemfile:
   - Gemfile
   - Gemfile.fluentd.lt.0.10.43
+matrix:
+  exclude:
+    - rvm: 2.2
+    - gemfile: Gemfile.fluentd.lt.0.10.43
