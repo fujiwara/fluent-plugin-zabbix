@@ -10,4 +10,4 @@ gemfile:
 matrix:
   exclude:
     - rvm: 2.2
-      gemfile: Gemfile.fluentd.0.10.43
+    - gemfile: Gemfile.fluentd.lt.0.10.43
