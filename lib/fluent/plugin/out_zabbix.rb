@@ -55,25 +55,13 @@ class Fluent::ZabbixOutput < Fluent::Output
     super
   end
 
-  def send(host, tag, name, value, time)
-    if @add_key_prefix
-      if @add_key_prefix == '${tag}'
-        name = "#{tag}.#{name}"
-      else
-        name = "#{@add_key_prefix}.#{name}"
-      end
+  def send(time, bulk)
+    bulk.each do |d|
     end
     begin
       sock = TCPSocket.open(@zabbix_server, @port)
-      log.debug("zabbix: #{sock} #{name}: #{value}, host: #{host}, ts: #{time}")
-      if value.kind_of? Float
-        # https://www.zabbix.com/documentation/2.4/manual/config/items/item
-        # > Allowed range (for MySQL): -999999999999.9999 to 999999999999.9999 (double(16,4)).
-        # > Starting with Zabbix 2.2, receiving values in scientific notation is also supported. E.g. 1e+70, 1e-70.
-        status = send_to_zabbix(sock, host, name, value.round(4).to_s, time)
-      else
-        status = send_to_zabbix(sock, host, name, value.to_s, time)
-      end
+      log.debug("zabbix: #{sock} #{bulk}, ts: #{time}")
+      status = send_to_zabbix(sock, time, bulk)
     rescue => e
       log.warn "plugin-zabbix: raises exception: #{e}"
       status = false
@@ -82,7 +70,7 @@ class Fluent::ZabbixOutput < Fluent::Output
     end
 
     unless status
-      log.warn "plugin-zabbix: failed to send to zabbix_server: #{@zabbix_server}:#{@port}, host:#{host} '#{name}': #{value}"
+      log.warn "plugin-zabbix: failed to send to zabbix_server: #{@zabbix_server}:#{@port} #{bulk}"
     end
   end
 
@@ -90,20 +78,32 @@ class Fluent::ZabbixOutput < Fluent::Output
     if @name_keys
       es.each {|time,record|
         host = gen_host(record)
-        @name_keys.each {|name|
-          if record[name]
-            send(host, tag, name, record[name], time)
+        bulk = []
+        @name_keys.each {|key|
+          if record[key]
+            bulk.push({ :key => format_key(tag, key),
+                        :value => format_value(record[key]),
+                        :host => host,
+                        :time => time.to_i,
+                      })
           end
         }
+        send(time, bulk) if bulk.size > 0
       }
     else # for name_key_pattern
       es.each {|time,record|
         host = gen_host(record)
+        bulk = []
         record.keys.each {|key|
-          if @name_key_pattern.match(key) and record[key]
-            send(host, tag, key, record[key], time)
+          if @name_key_pattern.match(key) && record[key]
+            bulk.push({ :key => format_key(tag, key),
+                        :value => format_value(record[key]),
+                        :host => host,
+                        :time => time.to_i,
+                      })
           end
         }
+        send(time, bulk) if bulk.size > 0
       }
     end
     chain.next
@@ -123,17 +123,34 @@ class Fluent::ZabbixOutput < Fluent::Output
     return host
   end
 
-  def send_to_zabbix(sock, host, key, value, time)
-    data = {
-      :host => host,
-      :key => key,
-      :value => value.to_s,
-      :time => time.to_i,
-    }
+  def format_key(tag, key)
+    if @add_key_prefix
+      if @add_key_prefix == '${tag}'
+        "#{tag}.#{key}"
+      else
+        "#{@add_key_prefix}.#{key}"
+      end
+    else
+      key
+    end
+  end
+
+  def format_value(value)
+    if value.kind_of? Float
+        # https://www.zabbix.com/documentation/2.4/manual/config/items/item
+        # > Allowed range (for MySQL): -999999999999.9999 to 999999999999.9999 (double(16,4)).
+        # > Starting with Zabbix 2.2, receiving values in scientific notation is also supported. E.g. 1e+70, 1e-70.
+      value.round(4).to_s
+    else
+      value.to_s
+    end
+  end
+
+  def send_to_zabbix(sock, time, bulk)
     req = Yajl::Encoder.encode({
       :request => 'agent data',
       :clock => time.to_i,
-      :data => [ data ],
+      :data => bulk,
     })
     sock.write(ZBXD + [ req.size ].pack('q') + req)
     sock.flush
