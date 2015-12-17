@@ -64,6 +64,17 @@ END
     Fluent::Test::OutputTestDriver.new(Fluent::ZabbixOutput, tag).configure(conf)
   end
 
+  CONFIG_PREFIX_KEY = %[
+    zabbix_server  127.0.0.1
+    host           test_host
+    prefix_key     prefix
+    name_keys      foo, bar, baz
+  ]
+
+  def create_driver_prefix_key(conf = CONFIG_PREFIX_KEY, tag='test')
+    Fluent::Test::OutputTestDriver.new(Fluent::ZabbixOutput, tag).configure(conf)
+  end
+
   def test_write_host_key
     d = create_driver_host_key
     if ENV['LIVE_TEST']
@@ -75,6 +86,21 @@ END
       assert_equal open($dir + "/trapper.log").read, <<END
 host:test_host	key:test.foo	value:AAA
 host:alternative-hostname	key:test.foo	value:BBB
+END
+    end
+  end
+
+  def test_write_prefix_key
+    d = create_driver_prefix_key
+    if ENV['LIVE_TEST']
+      d.emit({"foo" => "AAA"})
+      d.emit({"foo" => "BBB", "prefix" => "p"})
+      d.run
+      sleep 1
+      $server.stop
+      assert_equal open($dir + "/trapper.log").read, <<END
+host:test_host	key:foo	value:AAA
+host:test_host	key:p.foo	value:BBB
 END
     end
   end
