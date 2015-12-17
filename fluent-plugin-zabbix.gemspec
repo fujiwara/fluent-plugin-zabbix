@@ -7,6 +7,7 @@ Gem::Specification.new do |gem|
   gem.description   = %q{Output data plugin to Zabbix}
   gem.summary       = %q{Output data plugin to Zabbix (like zabbix_sender)}
   gem.homepage      = "https://github.com/fujiwara/fluent-plugin-zabbix"
+  gem.license       = "Apache-2.0"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
