@@ -18,6 +18,7 @@ class Fluent::ZabbixOutput < Fluent::Output
   config_param :name_keys, :string,        :default => nil
   config_param :name_key_pattern, :string, :default => nil
   config_param :add_key_prefix, :string,   :default => nil
+  config_param :prefix_key, :string,       :default => nil
 
   include Fluent::Mixin::ConfigPlaceholders
 
@@ -81,7 +82,7 @@ class Fluent::ZabbixOutput < Fluent::Output
         bulk = []
         @name_keys.each {|key|
           if record[key]
-            bulk.push({ :key => format_key(tag, key),
+            bulk.push({ :key => format_key(tag, key, record),
                         :value => format_value(record[key]),
                         :host => host,
                         :time => time.to_i,
@@ -96,7 +97,7 @@ class Fluent::ZabbixOutput < Fluent::Output
         bulk = []
         record.keys.each {|key|
           if @name_key_pattern.match(key) && record[key]
-            bulk.push({ :key => format_key(tag, key),
+            bulk.push({ :key => format_key(tag, key, record),
                         :value => format_value(record[key]),
                         :host => host,
                         :time => time.to_i,
@@ -123,7 +124,12 @@ class Fluent::ZabbixOutput < Fluent::Output
     return host
   end
 
-  def format_key(tag, key)
+  def format_key(tag, key, record)
+    if @prefix_key
+      if record[@prefix_key]
+        key = "#{record[@prefix_key]}.#{key}"
+      end
+    end
     if @add_key_prefix
       if @add_key_prefix == '${tag}'
         "#{tag}.#{key}"

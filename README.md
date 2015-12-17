@@ -41,6 +41,9 @@ or, use `add_key_prefix`
       name_key_pattern  ^field
     </match>
 
+If `prefix_key` is specified, a value of record[prefix_key] will be used as key prefix.
+
+
 If you want to specify the host(on zabbix) from record's value, use "host_key" directive.
 
     tag:metrics {"zabbix_host":"myhostname", "metrics.field1":300, "metrics.field2":20}
