@@ -22,7 +22,7 @@ For messages such as:
     tag:metrics {"metrics.field1":300, "metrics.field2":20}
 
     <match metrics>
-      type zabbix
+      @type zabbix
       zabbix_server 192.168.0.1
       port          10051
       host          client-hostname
@@ -33,7 +33,7 @@ or, use `add_key_prefix`
     tag:metrics {"field1":300, "field2":20}
 
     <match metrics>
-      type zabbix
+      @type zabbix
       zabbix_server     192.168.0.1
       port              10051
       host              client-hostname
@@ -49,7 +49,7 @@ If you want to specify the host(on zabbix) from record's value, use "host_key" d
     tag:metrics {"zabbix_host":"myhostname", "metrics.field1":300, "metrics.field2":20}
 
     <match metrics>
-      type zabbix
+      @type zabbix
       zabbix_server 192.168.0.1
       host_key      zabbix_host
       name_keys     metrics.field1,metrics.field2
@@ -59,7 +59,7 @@ v0.0.7~ includes [Fluent::Mixin::ConfigPlaceholders](https://github.com/tagomori
 
 ```
 <match matrics.**>
-  type             zabbix
+  @type            zabbix
   zabbix_server    192.168.0.1
   host             ${hostname}
   add_key_prefix   ${tag}
