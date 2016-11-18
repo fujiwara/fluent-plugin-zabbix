@@ -1,6 +1,7 @@
+require 'fluent/plugin/output'
 require 'fluent/mixin/config_placeholders'
 
-class Fluent::ZabbixOutput < Fluent::Output
+class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
   Fluent::Plugin.register_output('zabbix', self)
 
   ZBXD = "ZBXD\x01"
@@ -75,7 +76,7 @@ class Fluent::ZabbixOutput < Fluent::Output
     end
   end
 
-  def emit(tag, es, chain)
+  def process(tag, es)
     if @name_keys
       es.each {|time,record|
         host = gen_host(record)
@@ -107,7 +108,6 @@ class Fluent::ZabbixOutput < Fluent::Output
         send(time, bulk) if bulk.size > 0
       }
     end
-    chain.next
   end
 
   def gen_host(record)
