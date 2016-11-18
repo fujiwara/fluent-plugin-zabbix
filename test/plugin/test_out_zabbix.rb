@@ -12,7 +12,7 @@ class ZabbixOutputTest < Test::Unit::TestCase
     Fluent::Test.setup
     if ENV['LIVE_TEST']
       $dir = Dir.mktmpdir
-      $server = Glint::Server.new(10051, { :timeout => 3 }) do |port|
+      $server = Glint::Server.new(10051, { timeout: 3 }) do |port|
         exec "./mockserver", $dir.to_s + "/trapper.log"
       end
       $server.start

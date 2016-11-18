@@ -13,13 +13,13 @@ class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
   end
 
   config_param :zabbix_server, :string
-  config_param :port, :integer,            :default => 10051
-  config_param :host, :string,             :default => Socket.gethostname
-  config_param :host_key, :string,         :default => nil
-  config_param :name_keys, :string,        :default => nil
-  config_param :name_key_pattern, :string, :default => nil
-  config_param :add_key_prefix, :string,   :default => nil
-  config_param :prefix_key, :string,       :default => nil
+  config_param :port, :integer,            default: 10051
+  config_param :host, :string,             default: Socket.gethostname
+  config_param :host_key, :string,         default: nil
+  config_param :name_keys, :string,        default: nil
+  config_param :name_key_pattern, :string, default: nil
+  config_param :add_key_prefix, :string,   default: nil
+  config_param :prefix_key, :string,       default: nil
 
   include Fluent::Mixin::ConfigPlaceholders
 
@@ -83,10 +83,10 @@ class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
         bulk = []
         @name_keys.each {|key|
           if record[key]
-            bulk.push({ :key => format_key(tag, key, record),
-                        :value => format_value(record[key]),
-                        :host => host,
-                        :time => time.to_i,
+            bulk.push({ key: format_key(tag, key, record),
+                        value: format_value(record[key]),
+                        host: host,
+                        time: time.to_i,
                       })
           end
         }
@@ -98,10 +98,10 @@ class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
         bulk = []
         record.keys.each {|key|
           if @name_key_pattern.match(key) && record[key]
-            bulk.push({ :key => format_key(tag, key, record),
-                        :value => format_value(record[key]),
-                        :host => host,
-                        :time => time.to_i,
+            bulk.push({ key: format_key(tag, key, record),
+                        value: format_value(record[key]),
+                        host: host,
+                        time: time.to_i,
                       })
           end
         }
@@ -154,9 +154,9 @@ class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
 
   def send_to_zabbix(sock, time, bulk)
     req = Yajl::Encoder.encode({
-      :request => 'agent data',
-      :clock => time.to_i,
-      :data => bulk,
+      request: 'agent data',
+      clock: time.to_i,
+      data: bulk,
     })
     sock.write(ZBXD + [ req.size ].pack('q') + req)
     sock.flush
