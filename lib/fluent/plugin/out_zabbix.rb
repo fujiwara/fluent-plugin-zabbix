@@ -1,3 +1,5 @@
+require 'socket'
+require 'yajl'
 require 'fluent/plugin/output'
 require 'fluent/mixin/config_placeholders'
 
@@ -5,12 +7,6 @@ class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
   Fluent::Plugin.register_output('zabbix', self)
 
   ZBXD = "ZBXD\x01"
-
-  def initialize
-    super
-    require 'socket'
-    require 'yajl'
-  end
 
   config_param :zabbix_server, :string
   config_param :port, :integer,            default: 10051
