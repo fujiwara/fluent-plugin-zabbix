@@ -1,31 +1,23 @@
+require 'socket'
+require 'yajl'
+require 'fluent/plugin/output'
 require 'fluent/mixin/config_placeholders'
 
-class Fluent::ZabbixOutput < Fluent::Output
+class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
   Fluent::Plugin.register_output('zabbix', self)
 
   ZBXD = "ZBXD\x01"
 
-  def initialize
-    super
-    require 'socket'
-    require 'yajl'
-  end
-
   config_param :zabbix_server, :string
-  config_param :port, :integer,            :default => 10051
-  config_param :host, :string,             :default => Socket.gethostname
-  config_param :host_key, :string,         :default => nil
-  config_param :name_keys, :string,        :default => nil
-  config_param :name_key_pattern, :string, :default => nil
-  config_param :add_key_prefix, :string,   :default => nil
-  config_param :prefix_key, :string,       :default => nil
+  config_param :port, :integer,            default: 10051
+  config_param :host, :string,             default: Socket.gethostname
+  config_param :host_key, :string,         default: nil
+  config_param :name_keys, :string,        default: nil
+  config_param :name_key_pattern, :string, default: nil
+  config_param :add_key_prefix, :string,   default: nil
+  config_param :prefix_key, :string,       default: nil
 
   include Fluent::Mixin::ConfigPlaceholders
-
-  # Define `log` method for v0.10.42 or earlier
-  unless method_defined?(:log)
-    define_method("log") { $log }
-  end
 
   def configure(conf)
     super
@@ -75,17 +67,17 @@ class Fluent::ZabbixOutput < Fluent::Output
     end
   end
 
-  def emit(tag, es, chain)
+  def process(tag, es)
     if @name_keys
       es.each {|time,record|
         host = gen_host(record)
         bulk = []
         @name_keys.each {|key|
           if record[key]
-            bulk.push({ :key => format_key(tag, key, record),
-                        :value => format_value(record[key]),
-                        :host => host,
-                        :time => time.to_i,
+            bulk.push({ key: format_key(tag, key, record),
+                        value: format_value(record[key]),
+                        host: host,
+                        time: time.to_i,
                       })
           end
         }
@@ -97,17 +89,16 @@ class Fluent::ZabbixOutput < Fluent::Output
         bulk = []
         record.keys.each {|key|
           if @name_key_pattern.match(key) && record[key]
-            bulk.push({ :key => format_key(tag, key, record),
-                        :value => format_value(record[key]),
-                        :host => host,
-                        :time => time.to_i,
+            bulk.push({ key: format_key(tag, key, record),
+                        value: format_value(record[key]),
+                        host: host,
+                        time: time.to_i,
                       })
           end
         }
         send(time, bulk) if bulk.size > 0
       }
     end
-    chain.next
   end
 
   def gen_host(record)
@@ -154,9 +145,9 @@ class Fluent::ZabbixOutput < Fluent::Output
 
   def send_to_zabbix(sock, time, bulk)
     req = Yajl::Encoder.encode({
-      :request => 'agent data',
-      :clock => time.to_i,
-      :data => bulk,
+      request: 'agent data',
+      clock: time.to_i,
+      data: bulk,
     })
     sock.write(ZBXD + [ req.size ].pack('q') + req)
     sock.flush

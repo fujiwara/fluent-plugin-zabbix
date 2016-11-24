@@ -1,4 +1,5 @@
 require 'helper'
+require 'fluent/test/driver/output'
 
 if ENV['LIVE_TEST']
   require "glint"
@@ -11,7 +12,7 @@ class ZabbixOutputTest < Test::Unit::TestCase
     Fluent::Test.setup
     if ENV['LIVE_TEST']
       $dir = Dir.mktmpdir
-      $server = Glint::Server.new(10051, { :timeout => 3 }) do |port|
+      $server = Glint::Server.new(10051, { timeout: 3 }) do |port|
         exec "./mockserver", $dir.to_s + "/trapper.log"
       end
       $server.start
@@ -25,21 +26,22 @@ class ZabbixOutputTest < Test::Unit::TestCase
     name_keys      foo, bar, baz, f1, f2
   ]
 
-  def create_driver(conf = CONFIG, tag='test')
-    Fluent::Test::OutputTestDriver.new(Fluent::ZabbixOutput, tag).configure(conf)
+  def create_driver(conf = CONFIG)
+    Fluent::Test::Driver::Output.new(Fluent::Plugin::ZabbixOutput).configure(conf)
   end
 
   def test_write
     d = create_driver
     if ENV['LIVE_TEST']
-      d.emit({"foo" => "test value of foo"})
-      d.emit({"bar" => "test value of bar"})
-      d.emit({"baz" => 123.4567 })
-      d.emit({"foo" => "yyy", "zabbix_host" => "alternative-hostname"})
-      d.emit({"f1" => 0.000001})
-      d.emit({"f2" => 0.01})
-      d.run
-      sleep 1
+      d.run(default_tag: 'test') do
+        d.feed({"foo" => "test value of foo"})
+        d.feed({"bar" => "test value of bar"})
+        d.feed({"baz" => 123.4567 })
+        d.feed({"foo" => "yyy", "zabbix_host" => "alternative-hostname"})
+        d.feed({"f1" => 0.000001})
+        d.feed({"f2" => 0.01})
+        sleep 1
+      end
       $server.stop
       assert_equal open($dir + "/trapper.log").read, <<END
 host:test_host	key:test.foo	value:test value of foo
@@ -60,8 +62,8 @@ END
     name_keys      foo, bar, baz
   ]
 
-  def create_driver_host_key(conf = CONFIG_HOST_KEY, tag='test')
-    Fluent::Test::OutputTestDriver.new(Fluent::ZabbixOutput, tag).configure(conf)
+  def create_driver_host_key(conf = CONFIG_HOST_KEY)
+    Fluent::Test::Driver::Output.new(Fluent::Plugin::ZabbixOutput).configure(conf)
   end
 
   CONFIG_PREFIX_KEY = %[
@@ -71,17 +73,18 @@ END
     name_keys      foo, bar, baz
   ]
 
-  def create_driver_prefix_key(conf = CONFIG_PREFIX_KEY, tag='test')
-    Fluent::Test::OutputTestDriver.new(Fluent::ZabbixOutput, tag).configure(conf)
+  def create_driver_prefix_key(conf = CONFIG_PREFIX_KEY)
+    Fluent::Test::Driver::Output.new(Fluent::Plugin::ZabbixOutput).configure(conf)
   end
 
   def test_write_host_key
     d = create_driver_host_key
     if ENV['LIVE_TEST']
-      d.emit({"foo" => "AAA" })
-      d.emit({"foo" => "BBB", "host" => "alternative-hostname"})
-      d.run
-      sleep 1
+      d.run(default_tag: 'test') do
+        d.feed({"foo" => "AAA" })
+        d.feed({"foo" => "BBB", "host" => "alternative-hostname"})
+        sleep 1
+      end
       $server.stop
       assert_equal open($dir + "/trapper.log").read, <<END
 host:test_host	key:test.foo	value:AAA
@@ -93,10 +96,11 @@ END
   def test_write_prefix_key
     d = create_driver_prefix_key
     if ENV['LIVE_TEST']
-      d.emit({"foo" => "AAA"})
-      d.emit({"foo" => "BBB", "prefix" => "p"})
-      d.run
-      sleep 1
+      d.run(default_tag: 'test') do
+        d.feed({"foo" => "AAA"})
+        d.feed({"foo" => "BBB", "prefix" => "p"})
+        sleep 1
+      end
       $server.stop
       assert_equal open($dir + "/trapper.log").read, <<END
 host:test_host	key:foo	value:AAA

@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = "0.2.0"
 
-  gem.add_runtime_dependency "fluentd", [">= 0.10", "< 2"]
+  gem.add_runtime_dependency "fluentd", [">= 0.14.8", "< 2"]
   gem.add_runtime_dependency "yajl-ruby", "~> 1.0"
   gem.add_runtime_dependency "fluent-mixin-config-placeholders", "~> 0.3"
   gem.add_development_dependency "rake", ">= 0.9.2"
