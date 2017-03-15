@@ -48,7 +48,7 @@ class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
     super
   end
 
-  def send(time, bulk)
+  def bulk_send(time, bulk)
     bulk.each do |d|
     end
     begin
@@ -81,7 +81,7 @@ class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
                       })
           end
         }
-        send(time, bulk) if bulk.size > 0
+        bulk_send(time, bulk) if bulk.size > 0
       }
     else # for name_key_pattern
       es.each {|time,record|
@@ -96,7 +96,7 @@ class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
                       })
           end
         }
-        send(time, bulk) if bulk.size > 0
+        bulk_send(time, bulk) if bulk.size > 0
       }
     end
   end
