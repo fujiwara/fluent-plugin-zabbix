@@ -14,7 +14,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "fluent-plugin-zabbix"
   gem.require_paths = ["lib"]
-  gem.version       = "0.2.1"
+  gem.version       = "0.2.2"
 
   gem.add_runtime_dependency "fluentd", [">= 0.10", "< 2"]
   gem.add_runtime_dependency "yajl-ruby", "~> 1.0"
