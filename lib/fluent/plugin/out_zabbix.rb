@@ -40,14 +40,6 @@ class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
     end
   end
 
-  def start
-    super
-  end
-
-  def shutdown
-    super
-  end
-
   def bulk_send(time, bulk)
     bulk.each do |d|
     end
