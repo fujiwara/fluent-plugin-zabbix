@@ -40,12 +40,8 @@ class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
     end
   end
 
-  def start
-    super
-  end
-
-  def shutdown
-    super
+  def multi_workers_ready?
+    true
   end
 
   def bulk_send(time, bulk)
