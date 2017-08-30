@@ -4,6 +4,7 @@ class Fluent::ZabbixOutput < Fluent::Output
   Fluent::Plugin.register_output('zabbix', self)
 
   ZBXD = "ZBXD\x01"
+  ZBX_PROTO_VALUE_SENDER_DATA = 'sender data'
 
   def initialize
     super
@@ -154,7 +155,7 @@ class Fluent::ZabbixOutput < Fluent::Output
 
   def send_to_zabbix(sock, time, bulk)
     req = Yajl::Encoder.encode({
-      :request => 'agent data',
+      :request => ZBX_PROTO_VALUE_SENDER_DATA,
       :clock => time.to_i,
       :data => bulk,
     })
