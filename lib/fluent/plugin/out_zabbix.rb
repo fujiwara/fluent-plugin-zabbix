@@ -23,10 +23,6 @@ class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
   def configure(conf)
     super
 
-    if @zabbix_server.nil?
-      raise Fluent::ConfigError, "missing zabbix_server"
-    end
-
     if @name_keys.nil? and @name_key_pattern.nil?
       raise Fluent::ConfigError, "missing both of name_keys and name_key_pattern"
     end
