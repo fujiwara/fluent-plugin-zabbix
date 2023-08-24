@@ -67,6 +67,8 @@ v0.0.7~ includes [Fluent::Mixin::ConfigPlaceholders](https://github.com/tagomori
 </match>
 ```
 
+`host` parameter is set by default to Ruby's `Socket.gethostname` if not specified.
+
 # TODO
 
 - patches welcome!
