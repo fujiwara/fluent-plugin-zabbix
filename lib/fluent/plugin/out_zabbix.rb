@@ -70,7 +70,7 @@ class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
             bulk.push({ key: format_key(tag, key, record),
                         value: format_value(record[key]),
                         host: host,
-                        time: time.to_i,
+                        clock: time.to_i,
                       })
           end
         }
@@ -85,7 +85,7 @@ class Fluent::Plugin::ZabbixOutput < Fluent::Plugin::Output
             bulk.push({ key: format_key(tag, key, record),
                         value: format_value(record[key]),
                         host: host,
-                        time: time.to_i,
+                        clock: time.to_i,
                       })
           end
         }
