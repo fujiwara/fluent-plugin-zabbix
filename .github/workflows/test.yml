@@ -9,8 +9,9 @@ jobs:
     name: test on Ruby ${{ matrix.ruby }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-ruby@v1
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
       - run: bundle install
       - run: bundle exec rake test
