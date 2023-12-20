@@ -31,23 +31,24 @@ class ZabbixOutputTest < Test::Unit::TestCase
 
   def test_write
     d = create_driver
+    now = Time.now.to_i
     if ENV['LIVE_TEST']
-      d.emit({"foo" => "test value of foo"})
-      d.emit({"bar" => "test value of bar"})
-      d.emit({"baz" => 123.4567 })
-      d.emit({"foo" => "yyy", "zabbix_host" => "alternative-hostname"})
-      d.emit({"f1" => 0.000001})
-      d.emit({"f2" => 0.01})
-      d.run
+      d.emit({"foo" => "test value of foo"}, now)
+      d.emit({"bar" => "test value of bar"}, now)
+      d.emit({"baz" => 123.4567 }, now)
+      d.emit({"foo" => "yyy", "zabbix_host" => "alternative-hostname"}, now)
+      d.emit({"f1" => 0.000001}, now)
+      d.emit({"f2" => 0.01}, now)
       sleep 1
+
       $server.stop
       assert_equal open($dir + "/trapper.log").read, <<END
-host:test_host	key:test.foo	value:test value of foo
-host:test_host	key:test.bar	value:test value of bar
-host:test_host	key:test.baz	value:123.4567
-host:test_host	key:test.foo	value:yyy
-host:test_host	key:test.f1	value:0.0
-host:test_host	key:test.f2	value:0.01
+host:test_host	key:test.foo	value:test value of foo	clock:#{now}
+host:test_host	key:test.bar	value:test value of bar	clock:#{now}
+host:test_host	key:test.baz	value:123.4567	clock:#{now}
+host:test_host	key:test.foo	value:yyy	clock:#{now}
+host:test_host	key:test.f1	value:0.0	clock:#{now}
+host:test_host	key:test.f2	value:0.01	clock:#{now}
 END
     end
   end
@@ -77,30 +78,33 @@ END
 
   def test_write_host_key
     d = create_driver_host_key
+    now = Time.now.to_i
     if ENV['LIVE_TEST']
-      d.emit({"foo" => "AAA" })
-      d.emit({"foo" => "BBB", "host" => "alternative-hostname"})
+      d.emit({"foo" => "AAA" }, now)
+      d.emit({"foo" => "BBB", "host" => "alternative-hostname"}, now)
       d.run
       sleep 1
+
       $server.stop
       assert_equal open($dir + "/trapper.log").read, <<END
-host:test_host	key:test.foo	value:AAA
-host:alternative-hostname	key:test.foo	value:BBB
+host:test_host	key:test.foo	value:AAA	clock:#{now}
+host:alternative-hostname	key:test.foo	value:BBB	clock:#{now}
 END
     end
   end
 
   def test_write_prefix_key
     d = create_driver_prefix_key
+    now = Time.now.to_i
     if ENV['LIVE_TEST']
-      d.emit({"foo" => "AAA"})
-      d.emit({"foo" => "BBB", "prefix" => "p"})
+      d.emit({"foo" => "AAA"}, now)
+      d.emit({"foo" => "BBB", "prefix" => "p"}, now)
       d.run
       sleep 1
       $server.stop
       assert_equal open($dir + "/trapper.log").read, <<END
-host:test_host	key:foo	value:AAA
-host:test_host	key:p.foo	value:BBB
+host:test_host	key:foo	value:AAA	clock:#{now}
+host:test_host	key:p.foo	value:BBB	clock:#{now}
 END
     end
   end
