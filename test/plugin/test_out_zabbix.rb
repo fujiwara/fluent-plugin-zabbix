@@ -3,7 +3,7 @@ require 'helper'
 if ENV['LIVE_TEST']
   require "glint"
   require "tmpdir"
-  system "go", "build", "test/mockserver.go"
+  system "sh -c 'cd mockserver && go build mockserver.go'"
 end
 
 class ZabbixOutputTest < Test::Unit::TestCase
@@ -12,7 +12,7 @@ class ZabbixOutputTest < Test::Unit::TestCase
     if ENV['LIVE_TEST']
       $dir = Dir.mktmpdir
       $server = Glint::Server.new(10051, { :timeout => 3 }) do |port|
-        exec "./mockserver", $dir.to_s + "/trapper.log"
+        exec "./mockserver/mockserver", $dir.to_s + "/trapper.log"
       end
       $server.start
     end
