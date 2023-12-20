@@ -31,11 +31,10 @@ func main() {
 func handler(req zabbix.TrapperRequest) (res zabbix.TrapperResponse, err error) {
 	for _, d := range req.Data {
 		line := fmt.Sprintf(
-			"host:%s\tkey:%s\tvalue:%s\tclock:%d\n",
+			"host:%s\tkey:%s\tvalue:%s\n",
 			d.Host,
 			d.Key,
 			d.Value,
-			d.Clock,
 		)
 		Output.Write([]byte(line))
 	}
